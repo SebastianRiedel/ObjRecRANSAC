@@ -8,8 +8,10 @@
 //#include <ippcore.h>
 #include <pthread.h>
 
-ObjRecRANSAC::ObjRecRANSAC(double pairwidth, double voxelsize, double relNumOfPairsInHashTable)
-: mModelDatabase(pairwidth, voxelsize)
+ObjRecRANSAC::ObjRecRANSAC(double pairwidth, double voxelsize, double relNumOfPairsInHashTable, bool disableIntersectionTest, bool disableIntersectionTestBetweenClasses)
+  : mModelDatabase(pairwidth, voxelsize),
+    disableIntersectionTest(disableIntersectionTest),
+    disableIntersectionTestBetweenClasses(disableIntersectionTestBetweenClasses)
 {
 	mSceneOctree = NULL;
 
@@ -212,7 +214,17 @@ void ObjRecRANSAC::doRecognition(vtkPoints* scene, double successProbability, li
 
 	// Filter the weak hypotheses
 	list<ORRPointSetShape*> detectedShapes;
-	this->gridBasedFiltering(mShapes, detectedShapes);
+  if(!disableIntersectionTest)
+  {
+    this->gridBasedFiltering(mShapes, detectedShapes);
+  }
+  else
+  {
+    for(int i=0; i<mShapes.size();++i)
+    {
+      detectedShapes.push_back(mShapes[i]);
+    }
+  }
 
 	// Save the shapes in 'out'
 	for ( list<ORRPointSetShape*>::iterator it = detectedShapes.begin() ; it != detectedShapes.end() ; ++it )

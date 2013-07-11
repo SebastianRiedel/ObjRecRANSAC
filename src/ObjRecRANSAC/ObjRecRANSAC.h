@@ -44,7 +44,7 @@ public:
 	};
 
 public:
-	ObjRecRANSAC(double pairwidth, double voxelsize, double relNumOfPairsInHashTable = 0.8);
+  ObjRecRANSAC(double pairwidth, double voxelsize, double relNumOfPairsInHashTable = 0.8, bool disableIntersectionTest = false, bool disableIntersectionTestBetweenClasses = false);
 	virtual ~ObjRecRANSAC();
 
 	bool addModel(vtkPolyData* model, UserData* userData);
@@ -143,6 +143,8 @@ protected:
 	double mRelativeObjSize, mPairWidth, mAbsZDistThresh;
 	double mRelNumOfPairsToKill, mIntersectionFraction;
 	bool mICPRefinement;
+  bool disableIntersectionTest;
+  bool disableIntersectionTestBetweenClasses;
 };
 
 //=== inline methods ==============================================================================================
@@ -231,6 +233,19 @@ inline double* ObjRecRANSAC::estimateNodeNormal(double** ptsToUse, OctreeNode* n
 
 inline bool ObjRecRANSAC::significantIntersection(ORRPointSetShape* shape1, ORRPointSetShape* shape2)
 {
+  // labels are saved with a running number, e.g. classA_0, classA_1, classB_5
+  // hence for class comparison separate the number from class
+  std::string label1 = shape1->getLabel();
+  std::string label2 = shape2->getLabel();
+  int underScorePos1 = label1.find_last_of('_');
+  int underScorePos2 = label2.find_last_of('_');
+  std::string class1 = label1.substr(0,underScorePos1);
+  std::string class2 = label2.substr(0,underScorePos2);
+  if(disableIntersectionTestBetweenClasses && class1 != class2)
+  {
+    return false;
+  }
+
 	// Some variables for the intersection between both shapes
 	vector<int> intersection(shape1->getLinearPixelIds().size() + shape2->getLinearPixelIds().size());
 	// Compute the intersection set
