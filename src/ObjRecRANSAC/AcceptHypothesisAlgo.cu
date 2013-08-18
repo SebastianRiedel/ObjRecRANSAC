@@ -34,7 +34,9 @@ __global__ void cudaAcceptHypothesis(FloatType** model_points, RangeImage image,
 
 void cudaAcceptHypotheses(FloatType** model_points, RangeImage image, FloatType* transforms, int num_transforms, int* matches, int gMatchThresh, int gPenaltyThresh)
 {    
-    cudaSetDevice(CUDA_DEVICE_ID);
+    std::cout << "Device ID used,  now FIXED!!!!!: " << CUDA_DEVICE_ID << std::endl;
+    // cudaSetDevice(CUDA_DEVICE_ID);
+    cudaSetDevice(1);
     RangeImage image_dev = image;
     image_dev.mPixels = CudaUpload(image.mPixels, image.width*image.height);
     image_dev.mGridSetsP = CudaUpload(image.mGridSetsP, image.width*image.height*3);
